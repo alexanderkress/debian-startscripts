@@ -1,0 +1,69 @@
+#! /bin/sh
+#
+### BEGIN INIT INFO
+# Provides:          dpmaster
+# Required-Start:    $local_fs
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Initscript for dpmaster
+# Description:       Starts/Stops/Restarts the dpmaster service
+### END INIT INFO
+
+# Installation:
+# Move this file to /etc/init.d/dpmaster
+# Make it executable: sudo chmod +x /etc/init.d/dpmaster
+# Start at boot: sudo update-rc.d dpmaster defaults
+# Manual start: sudo /etc/init.d/dpmaster start
+
+# Change the next 4 lines to suit where you installed dpmaster, and which user is running the dpmaster service
+DAEMON=/opt/q3master/dpmaster
+OPTIONS="--port 27900 --log --log-file /opt/q3master/log/dpmaster.log --verbose 2 --game-policy accept Quake3Arena --daemon --flood-protection --fp-decay-time 2 -u q3master -j /opt/q3master"
+USER=q3master
+GROUP=q3master
+
+NAME=dpmaster
+
+set -e
+
+# Get LSB functions
+. /lib/lsb/init-functions
+
+# Exit if the package is not installed
+test -x $DAEMON || exit 0
+
+case "$1" in
+    start)
+        log_begin_msg "Starting service $NAME..."
+        umask 002
+        if start-stop-daemon --start --quiet --background --chuid $USER:$GROUP --exec $DAEMON -- $OPTIONS; then
+            log_end_msg 0
+        else
+            log_end_msg $?
+        fi
+        ;;
+
+    stop)
+        log_begin_msg "Stopping service $NAME..."
+        if start-stop-daemon --stop --quiet --oknodo --exec $DAEMON; then
+                log_end_msg 0
+        else
+                log_end_msg $?
+        fi
+        ;;
+
+    restart)
+        log_begin_msg "Restarting service $NAME..."
+        start-stop-daemon --stop --quiet --oknodo --exec $DAEMON
+        sleep 3
+        start-stop-daemon --start --quiet --background --chuid $USER:$GROUP --exec $DAEMON -- $OPTIONS
+        log_end_msg $?
+        ;;
+
+    *)
+        echo "Usage: /etc/init.d/$NAME {start|stop|restart}"
+        exit 1
+        ;;
+
+esac
+exit 0

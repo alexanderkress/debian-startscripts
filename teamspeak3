@@ -1,0 +1,81 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides:          teamspeak3
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: TeamSpeak3 Server initscript
+# Description:       Starts/Stops/Restarts the TeamSpeak3 Server Daemon
+### END INIT INFO
+
+# Installation:
+# Move this file to /etc/init.d/teamspeak3
+# Make it executable: sudo chmod +x /etc/init.d/teamspeak3
+# Start at boot: sudo update-rc.d teamspeak3 defaults
+# Manual start: sudo /etc/init.d/teamspeak3 start
+
+# Change the next 4 lines to suit where you installed TeamSpeak, and which user is running the TeamSpeak server
+DIR=/opt/teamspeak/teamspeak3-server_linux-x86
+BIN=ts3server_linux_x86
+PARAMS=inifile="$DIR/ts3server.ini"
+DAEMON_USER=teamspeak
+
+# Don't modify the code below
+DESC="TeamSpeak3 Server"
+NAME=teamspeak3
+DAEMON=$DIR/$BIN
+PIDFILE=/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+PATH=$DIR:/bin:/usr/bin:/sbin:/usr/sbin
+
+set -e
+
+export LD_LIBRARY_PATH="$DIR:$LD_LIBRARY_PATH"
+
+# Exit if the package is not installed
+test -x $DAEMON || exit 0
+
+case "$1" in
+  start)
+    echo -n "Starting service $NAME"
+    start-stop-daemon --start --quiet --background --chdir $DIR --chuid $DAEMON_USER -m --pidfile $PIDFILE --exec $DAEMON -- $PARAMS > /dev/null || echo -n " already running"
+    echo ""
+    ;;
+
+  stop)
+    echo -n "Stopping service $NAME"
+    start-stop-daemon --stop --quiet --pidfile $PIDFILE --oknodo --exec $DAEMON || echo -n " not running"
+    rm -f $PIDFILE
+    echo ""
+    ;;
+
+  restart)
+    echo -n "Restarting service $NAME"
+    start-stop-daemon --stop --quiet --pidfile $PIDFILE --oknodo --exec $DAEMON
+    rm -f $PIDFILE
+    sleep 3
+    start-stop-daemon --start --quiet --background --chdir $DIR --chuid $DAEMON_USER -m --pidfile $PIDFILE --exec $DAEMON -- $PARAMS
+    echo ""
+    ;;
+
+  reload|force-reload)
+    echo "Reloading $NAME configuration file"
+    start-stop-daemon --stop --pidfile $PIDFILE --signal 1 --exec $DAEMON -- $PARAMS
+    echo ""
+    ;;
+
+  status)
+       [ -e $PIDFILE ] && echo "$NAME seems to be running with pid: `cat $PIDFILE`." \
+                       || echo "$NAME is not running."
+    ;;
+
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|restart|reload|status}" >&2
+    exit 3
+    ;;
+
+esac
+exit 0
