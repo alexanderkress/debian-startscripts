@@ -13,7 +13,7 @@
 # Installation:
 # Move this file to /etc/init.d/teamspeak3
 # Make it executable: sudo chmod +x /etc/init.d/teamspeak3
-# Start at boot: sudo update-rc.d teamspeak3 defaults
+# Start at boot: sudo update-rc.d teamspeak3 defaults 80 10
 # Manual start: sudo /etc/init.d/teamspeak3 start
 
 # Change the next 4 lines to suit where you installed TeamSpeak, and which user is running the TeamSpeak server
